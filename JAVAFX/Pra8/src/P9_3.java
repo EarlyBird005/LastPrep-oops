@@ -1,4 +1,3 @@
-
 /* 
 Create animation in Figure to meet the following requirements:
 ■ Allow the user to specify the animation speed in a text field.
@@ -29,6 +28,8 @@ import javafx.scene.media.MediaPlayer;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 
@@ -49,16 +50,16 @@ public class P9_3 extends Application {
             System.out.println(e.getMessage());
         }
     }
-    
+
     public void start(Stage stage) throws Exception {
         Button startButton = new Button("Start Animation");
         VBox vb1 = new VBox(startButton);
         vb1.setAlignment(Pos.TOP_RIGHT);
-        
+
         HBox imageBox = new HBox();
         imageBox.setAlignment(Pos.CENTER);
-        imageBox.setPrefWidth(100);
-        imageBox.setPrefHeight(100);
+        imageBox.setPrefWidth(400);
+        imageBox.setPrefHeight(400);
 
         Text textInfo = new Text("Enter information for animation");
         TextField tfSpeed, tfPrefix, tfImage, tfURL;
@@ -82,35 +83,64 @@ public class P9_3 extends Application {
             audioURL = tfURL.getText();
 
             if (!audioURL.isEmpty()) {
-                URL audioFile = getClass().getResource(audioURL);
-                MediaPlayer mediaPlayer = new MediaPlayer(new Media(audioFile.toString()));
-                mediaPlayer.play();
+                // try {
+                //     MediaPlayer mediaPlayer = new MediaPlayer(new Media(audioURL));
+                //     mediaPlayer.play();
+                // } catch (Exception e) {
+                //     System.out.println("Error playing audio: " + e.getMessage()); // Handle potential exceptions
+                // }
+                // try {
+                //     URL audioFile = getClass().getResource(audioURL);
+                //     if (audioFile != null) { // Check if audio file is found
+                //         MediaPlayer mediaPlayer = new MediaPlayer(new Media(audioFile.toString()));
+                //         mediaPlayer.play();
+                //     } else {
+                //         System.out.println("Audio file not found: " + audioURL); // Inform user about missing audio
+                //     }
+                // } catch (Exception e) {
+                //     System.out.println("Error playing audio: " + e.getMessage()); // Handle potential exceptions
+                // }
+                try {
+                    File audioFile = new File(audioURL);
+                    if (audioFile.exists()) { // Check if audio file exists
+                        String filePath = audioFile.toURI().toString();
+                        MediaPlayer mediaPlayer = new MediaPlayer(new Media(filePath));
+                        mediaPlayer.play();
+                    } else {
+                        System.out.println("Audio file not found: " + audioURL); // Inform user about missing audio
+                    }
+                } catch (Exception e) {
+                    System.out.println("Error playing audio: " + e.getMessage()); // Handle potential exceptions
+                }
             }
 
             imageBox.getChildren().clear();
             for (int i = 1; i <= imageCount; i++) {
                 Image image = new Image(getClass().getResourceAsStream("/images/" + imagePrefix + i + ".gif"));
                 ImageView imageView = new ImageView(image);
-                imageView.setFitWidth(100); 
+                imageView.setFitWidth(100);
                 imageView.setPreserveRatio(true);
                 imageBox.getChildren().add(imageView);
-                
                 int index = i;
                 timeline = new Timeline(new KeyFrame(Duration.millis(animationSpeed),
-                    event1 -> {
-                        imageView.setImage(new Image(getClass().getResourceAsStream("/images/" + imagePrefix + index + ".gif")));
-                    }));
+                        event1 -> {
+                            imageView.setImage(new Image(
+                                    getClass().getResourceAsStream("/images/" + imagePrefix + index + ".gif")));
+                        }));
             }
             timeline.play();
         });
 
         VBox root = new VBox(vb1, imageBox, textInfo, gp);
         root.setPadding(new Insets(5, 5, 5, 5));
-        
+
         Scene scene = new Scene(root, 800, 200);
         tfSpeed.setPrefWidth(scene.getWidth());
         scene.widthProperty().addListener((obs, oldVal, newVal) -> {
             tfSpeed.setPrefWidth(newVal.doubleValue());
+        });
+        imageBox.heightProperty().addListener((obs, oldVal, newVal) -> {
+            scene.getWindow().setHeight(scene.getHeight() + newVal.doubleValue());
         });
         stage.setScene(scene);
         stage.setTitle("Exercise16_23");
